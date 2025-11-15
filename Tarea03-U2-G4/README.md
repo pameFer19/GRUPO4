@@ -107,7 +107,7 @@ La aplicación muestra:
 * Lista completa de integrantes
 * Diseño limpio, moderno y responsivo
 
-![Captura de pantalla](./assets/MainWindows.jpeg)
+![Captura de pantalla](./assets/MainWindows.jpg)
 
 ## 🤝 Créditos
 
