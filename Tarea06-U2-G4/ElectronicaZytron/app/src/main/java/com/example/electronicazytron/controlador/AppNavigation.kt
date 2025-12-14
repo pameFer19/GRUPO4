@@ -50,14 +50,18 @@ fun AppNavigation() {
         composable("login") {
             LoginScreen { nombre, apellido ->
                 val usuario = Usuario(nombre, apellido)
-                if (usuarioViewModel.validar(usuario)) {
-                    productoViewModel.cargarProductos() // cargar productos antes de navegar
+                val esValido = usuarioViewModel.validar(usuario)
+
+                if (esValido) {
+                    productoViewModel.cargarProductos()
                     navController.navigate("productos") {
                         popUpTo("login") { inclusive = true }
                     }
                 }
+                esValido // retorna true/false para el popup
             }
         }
+
 
         //definicion de las rutas de la app, aqui se define la ruta productos la cual tiene un constructor
         //ProductScreen que consta de la vista del modelo y un controlador de navegacion
