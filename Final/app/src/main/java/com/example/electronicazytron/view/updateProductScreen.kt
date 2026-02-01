@@ -64,7 +64,13 @@ fun UpdateProductScreen(
     productoViewModel: ProductViewModel,
     navController: NavController
 ) {
-    val producto = productoViewModel.productos.find { it.codigo == codigo }
+    var producto by remember { mutableStateOf<Producto?>(null) }
+
+    LaunchedEffect(codigo) {
+        productoViewModel.find(codigo) { encontrado ->
+            producto = encontrado
+        }
+    }
 
     if (producto == null) {
         Box(
@@ -75,11 +81,18 @@ fun UpdateProductScreen(
         }
         return
     }
+    val prod = producto!!
+    var descripcion by remember { mutableStateOf("") }
+    var fechaFab by remember { mutableStateOf("") }
+    var costo by remember { mutableStateOf("") }
+    var disponibilidad by remember { mutableStateOf("") }
 
-    var descripcion by remember { mutableStateOf(producto.descripcion) }
-    var fechaFab by remember { mutableStateOf(producto.fecha_fab.filter { it.isDigit() }) }
-    var costo by remember { mutableStateOf(producto.costo.toString()) }
-    var disponibilidad by remember { mutableStateOf(producto.disponibilidad.toString()) }
+    LaunchedEffect(prod.codigo) {
+        descripcion = prod.descripcion
+        fechaFab = prod.fecha_fab.filter { it.isDigit() }
+        costo = prod.costo.toString()
+        disponibilidad = prod.disponibilidad.toString()
+    }
 
     var showConfirmDialog by remember { mutableStateOf(false) }
 
@@ -109,7 +122,7 @@ fun UpdateProductScreen(
 
                 // Código (solo lectura)
                 OutlinedTextField(
-                    value = producto.codigo,
+                    value = prod.codigo,
                     onValueChange = {},
                     label = { Text("Código") },
                     leadingIcon = { Icon(Icons.Default.QrCode, null) },
@@ -213,13 +226,13 @@ fun UpdateProductScreen(
                             .toString()
 
                     productoViewModel.update(
-                        codigo,
                         Producto(
                             codigo = codigo,
                             descripcion = descripcion,
                             fecha_fab = formattedDate,
                             costo = costo.toDoubleOrNull() ?: 0.0,
-                            disponibilidad = disponibilidad.toIntOrNull() ?: 0
+                            disponibilidad = disponibilidad.toIntOrNull() ?: 0,
+                            imagenUri = prod.imagenUri
                         )
                     )
 

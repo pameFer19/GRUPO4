@@ -1,5 +1,6 @@
 package com.example.electronicazytron.vista
 
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -72,7 +73,7 @@ fun InsertProductScreen(
                 title = { Text("Nuevo Producto") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "volver")
                     }
                 }
             )
@@ -200,7 +201,8 @@ fun InsertProductScreen(
                                 descripcion = descripcion,
                                 fecha_fab = formattedDate,
                                 costo = costo.toDoubleOrNull() ?: 0.0,
-                                disponibilidad = disponibilidad.toIntOrNull() ?: 0
+                                disponibilidad = disponibilidad.toIntOrNull() ?: 0,
+                                imagenUri = "https://picsum.photos/seed/${codigo.trim()}/400/400"
                             )
                         )
 
@@ -227,8 +229,5 @@ fun InsertProductScreen(
 @Preview(showSystemUi = true)
 @Composable
 fun InsertProductScreenPreview() {
-    InsertProductScreen(
-        productoViewModel = ProductViewModel(),
-        navController = rememberNavController()
-    )
+    // No preview porque ProductViewModel necesita Application
 }

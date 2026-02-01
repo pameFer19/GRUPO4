@@ -61,8 +61,7 @@ fun ProductScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            
-            // Tarjeta de información de sesión
+
             if (nombreUsuario.isNotEmpty() || password.isNotEmpty() || hash.isNotEmpty()) {
                 Card(
                     modifier = Modifier
@@ -79,8 +78,7 @@ fun ProductScreen(
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        
-                        // Campo para mostrar el nombre de usuario
+
                         if (nombreUsuario.isNotEmpty()) {
                             OutlinedTextField(
                                 value = nombreUsuario,
@@ -93,20 +91,23 @@ fun ProductScreen(
                         }
 
                         if (password.isNotEmpty()) {
-                             Text(text = "Contraseña: $password", style = MaterialTheme.typography.bodyMedium)
+                            Text(text = "Contraseña: $password", style = MaterialTheme.typography.bodyMedium)
                         }
                         if (hash.isNotEmpty()) {
-                             Text(text = "Hash: $hash", style = MaterialTheme.typography.bodySmall)
+                            Text(text = "Hash: $hash", style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }
             }
-            
+
             ProductContent(
                 productos = productoViewModel.productos,
                 modifier = Modifier.fillMaxSize(),
                 onUpdate = { navController.navigate("updateProduct/$it") },
-                onDelete = { productoViewModel.delete(it) }
+
+                onDeleteVisual = { codigo -> productoViewModel.deleteVisual(codigo) },
+
+                onDeleteBD = { producto -> productoViewModel.deleteBD(producto) }
             )
         }
     }
@@ -120,9 +121,7 @@ fun ProductScreen(
                     style = MaterialTheme.typography.titleLarge
                 )
             },
-            text = {
-                Text("¿Estás seguro de que deseas cerrar sesión?")
-            },
+            text = { Text("¿Estás seguro de que deseas cerrar sesión?") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -136,9 +135,7 @@ fun ProductScreen(
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { showLogoutDialog = false }
-                ) {
+                TextButton(onClick = { showLogoutDialog = false }) {
                     Text("Cancelar")
                 }
             }
@@ -151,7 +148,8 @@ fun ProductContent(
     productos: List<Producto>,
     modifier: Modifier = Modifier,
     onUpdate: (String) -> Unit,
-    onDelete: (String) -> Unit
+    onDeleteVisual: (String) -> Unit,
+    onDeleteBD: (Producto) -> Unit
 ) {
     var currentPage by remember { mutableStateOf(0) }
     val pageSize = 5
@@ -171,7 +169,8 @@ fun ProductContent(
                 ProductCard(
                     producto = producto,
                     onUpdate = onUpdate,
-                    onDelete = onDelete
+                    onDeleteVisual = onDeleteVisual,
+                    onDeleteBD = onDeleteBD
                 )
             }
         }
@@ -189,9 +188,12 @@ fun ProductContent(
 fun ProductCard(
     producto: Producto,
     onUpdate: (String) -> Unit,
-    onDelete: (String) -> Unit
+    onDeleteVisual: (String) -> Unit,
+    onDeleteBD: (Producto) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
@@ -225,11 +227,51 @@ fun ProductCard(
                 IconButton(onClick = { onUpdate(producto.codigo) }) {
                     Icon(Icons.Default.Edit, contentDescription = "Editar")
                 }
-                IconButton(onClick = { onDelete(producto.codigo) }) {
+
+                IconButton(onClick = { showDeleteDialog = true }) {
                     Icon(Icons.Default.Delete, contentDescription = "Eliminar")
                 }
             }
         }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Eliminar producto") },
+            text = { Text("¿Qué tipo de eliminación deseas aplicar al producto ${producto.codigo}?") },
+
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteVisual(producto.codigo)
+                        showDeleteDialog = false
+                    }
+                ) {
+                    Text("Solo visual")
+                }
+            },
+
+            dismissButton = {
+                Row(
+                    modifier = Modifier.padding(end = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("Cancelar")
+                    }
+
+                    Button(
+                        onClick = {
+                            onDeleteBD(producto)
+                            showDeleteDialog = false
+                        }
+                    ) {
+                        Text("Eliminar BD")
+                    }
+                }
+            }
+        )
     }
 }
 
@@ -268,13 +310,12 @@ fun ProductScreenPreview() {
         Producto("P003", "Teclado Redragon", "2023-10-05", 50.0, 30)
     )
 
-    // Preview with fake context
-    // This is just for preview, navController is not functional here
     MaterialTheme {
         ProductContent(
             productos = productosFake,
             onUpdate = {},
-            onDelete = {}
+            onDeleteVisual = {},
+            onDeleteBD = {}
         )
     }
 }
