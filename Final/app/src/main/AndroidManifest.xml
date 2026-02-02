@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
+    <!-- Permiso para que la aplicación pueda usar internet -->
     <uses-permission android:name="android.permission.INTERNET" />
-
+    <!--Permiso para que la aplicación pueda verificar si hay conexión-->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <application
         android:allowBackup="true"
         android:icon="@drawable/logo"
@@ -21,7 +22,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+
         </activity>
+        <!-- Declaración del servicio para la sincronización -->
+        <service android:name=".services.SyncService" />
 
     </application>
 
