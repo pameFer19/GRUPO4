@@ -4,7 +4,8 @@ import androidx.room.*
 
 @Dao
 interface ProductoDao{
-    @Query("SELECT * FROM productos ORDER BY codigo ASC")
+
+    @Query("SELECT * FROM productos WHERE eliminado=0 ORDER BY codigo ASC")
     suspend fun listar(): List<Producto>
 
     @Query("SELECT * FROM productos WHERE codigo = :codigo LIMIT 1")
@@ -16,8 +17,8 @@ interface ProductoDao{
     @Update
     suspend fun actualizar(producto: Producto)
 
-    @Delete
-    suspend fun eliminar(producto: Producto)
+    @Query("UPDATE productos SET eliminado = 1 WHERE codigo = :codigo")
+    suspend fun marcarEliminado(codigo: String)
 
     @Query("SELECT COUNT(*) FROM productos")
     suspend fun count(): Int

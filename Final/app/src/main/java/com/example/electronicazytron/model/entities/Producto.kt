@@ -12,5 +12,6 @@ data class Producto(
     var fecha_fab: String,
     var costo: Double,
     var disponibilidad: Int,
-    var imagenUri: String = ""
+    var imagenUri: String = "",
+    var eliminado: Boolean = false
 )

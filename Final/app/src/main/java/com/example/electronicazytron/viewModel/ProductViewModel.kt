@@ -46,13 +46,8 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun deleteVisual(codigo: String) {
-        val index = productos.indexOfFirst { it.codigo == codigo }
-        if (index != -1) productos.removeAt(index)
-    }
-
-    fun deleteBD(producto: Producto) {
         viewModelScope.launch {
-            repository.deleteBD(producto)
+            repository.softDelete(codigo)
             refrescar()
         }
     }
