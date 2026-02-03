@@ -18,14 +18,14 @@ import com.example.electronicazytron.utils.DynamoDbClientFactory
 import com.example.electronicazytron.utils.NetworkConnection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 class SyncService : Service() {
 
     private val TAG = "SyncService_Debug"
-    private val serviceJob = Job()
-    private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
+    private val serviceJob = SupervisorJob()
+    private val serviceScope = CoroutineScope(serviceJob + Dispatchers.IO)
 
     override fun onBind(intent: Intent?): IBinder? = null
 

@@ -2,10 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Permiso para que la aplicación pueda usar internet -->
     <uses-permission android:name="android.permission.INTERNET" />
-    
+
     <!-- Permiso para que la aplicación pueda verificar si hay conexión -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    
+
     <!-- Permisos para la cámara y almacenamiento -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
@@ -30,7 +30,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
+
         <!-- Declaración del servicio para la sincronización -->
         <service android:name=".services.SyncService" />
 
