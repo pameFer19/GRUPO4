@@ -29,6 +29,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.example.electronicazytron.utils.NetworkConnection
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.electronicazytron.model.entities.Producto
@@ -44,6 +45,9 @@ fun InsertProductScreen(
     navController: NavController
 ) {
     val context = LocalContext.current
+    // Comprueba si hay conexión a internet al entrar en la pantalla
+    val isOnline = remember { NetworkConnection(context).isNetworkAvailable() }
+    val PLACEHOLDER_IMAGE_URL = "https://via.placeholder.com/600x400.png?text=Sin+Internet"
     var codigo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var fechaFab by remember { mutableStateOf("") }
@@ -130,21 +134,32 @@ fun InsertProductScreen(
                                 contentScale = ContentScale.Crop
                             )
                         } else {
-                            IconButton(
-                                onClick = {
-                                    val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                                    if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                                        val file = CameraUtils.createTempImageFile(context)
-                                        capturedFile = file
-                                        val uri = CameraUtils.getUriForFile(context, file)
-                                        cameraLauncher.launch(uri)
-                                    } else {
-                                        permissionLauncher.launch(Manifest.permission.CAMERA)
-                                    }
-                                },
-                                modifier = Modifier.size(80.dp)
-                            ) {
-                                Icon(Icons.Default.AddAPhoto, contentDescription = "Tomar Foto", modifier = Modifier.size(48.dp))
+                            if (isOnline) {
+                                IconButton(
+                                    onClick = {
+                                        val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                                        if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                                            val file = CameraUtils.createTempImageFile(context)
+                                            capturedFile = file
+                                            val uri = CameraUtils.getUriForFile(context, file)
+                                            cameraLauncher.launch(uri)
+                                        } else {
+                                            permissionLauncher.launch(Manifest.permission.CAMERA)
+                                        }
+                                    },
+                                    modifier = Modifier.size(80.dp)
+                                ) {
+                                    Icon(Icons.Default.AddAPhoto, contentDescription = "Tomar Foto", modifier = Modifier.size(48.dp))
+                                }
+                            } else {
+                                // Si no hay internet, fijamos una URL placeholder para que el usuario pueda cambiarla luego
+                                LaunchedEffect(Unit) {
+                                    productoViewModel.updateImagenUri(PLACEHOLDER_IMAGE_URL)
+                                }
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Icon(Icons.Default.CloudOff, contentDescription = "Sin Internet", modifier = Modifier.size(48.dp))
+                                    Text("Sin conexión: cámara deshabilitada", style = MaterialTheme.typography.bodySmall)
+                                }
                             }
                         }
                         
@@ -153,7 +168,7 @@ fun InsertProductScreen(
                         }
                     }
 
-                    if (imagenUriFromVM.isNotEmpty()) {
+                    if (imagenUriFromVM.isNotEmpty() && isOnline) {
                         TextButton(
                             onClick = {
                                 val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
@@ -169,6 +184,13 @@ fun InsertProductScreen(
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         ) {
                             Text("Cambiar Foto")
+                        }
+                    }
+
+                    // Si no hay internet y no hay imagen del usuario, nos aseguramos de mostrar la URL quemada
+                    LaunchedEffect(isOnline) {
+                        if (!isOnline && imagenUriFromVM.isEmpty()) {
+                            productoViewModel.updateImagenUri(PLACEHOLDER_IMAGE_URL)
                         }
                     }
 

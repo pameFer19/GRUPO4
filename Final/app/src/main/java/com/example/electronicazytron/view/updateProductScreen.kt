@@ -32,6 +32,7 @@ import coil.compose.AsyncImage
 import com.example.electronicazytron.model.entities.Producto
 import com.example.electronicazytron.ui.components.DatePickerField
 import com.example.electronicazytron.viewModel.ProductViewModel
+import com.example.electronicazytron.utils.NetworkConnection
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,6 +62,8 @@ fun UpdateProductScreen(
     var disponibilidad by remember { mutableStateOf(prod.disponibilidad.toString()) }
     var imagenUri by remember { mutableStateOf(prod.imagenUri) }
     val context = LocalContext.current
+    val isOnline = remember { NetworkConnection(context).isNetworkAvailable() }
+    val PLACEHOLDER_IMAGE_URL = "https://via.placeholder.com/600x400.png?text=Sin+Internet"
     // Observamos estado global de imagen (se actualiza tras subir)
     val imagenUriFromVM = productoViewModel.imagenUriState
 
@@ -88,6 +91,13 @@ fun UpdateProductScreen(
     // Inicializamos el estado global de imagen con la imagen actual del producto
     LaunchedEffect(prod) {
         productoViewModel.updateImagenUri(prod.imagenUri)
+    }
+
+    // Si no hay internet, fijar URL placeholder para que el usuario la cambie luego
+    LaunchedEffect(isOnline) {
+        if (!isOnline) {
+            productoViewModel.updateImagenUri(PLACEHOLDER_IMAGE_URL)
+        }
     }
 
     // Si la VM cambia la URI (tras subir), actualizamos la URI local para mostrarla
@@ -150,18 +160,28 @@ fun UpdateProductScreen(
                             .height(180.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        IconButton(onClick = {
-                            val permissionCheck = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                            if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-                                val file = com.example.electronicazytron.utils.CameraUtils.createTempImageFile(context)
-                                capturedFile = file
-                                val uri: Uri = com.example.electronicazytron.utils.CameraUtils.getUriForFile(context, file)
-                                cameraLauncher.launch(uri)
-                            } else {
-                                permissionLauncher.launch(Manifest.permission.CAMERA)
+                        if (isOnline) {
+                            IconButton(onClick = {
+                                val permissionCheck = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                                if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+                                    val file = com.example.electronicazytron.utils.CameraUtils.createTempImageFile(context)
+                                    capturedFile = file
+                                    val uri: Uri = com.example.electronicazytron.utils.CameraUtils.getUriForFile(context, file)
+                                    cameraLauncher.launch(uri)
+                                } else {
+                                    permissionLauncher.launch(Manifest.permission.CAMERA)
+                                }
+                            }) {
+                                Icon(Icons.Default.AddAPhoto, contentDescription = "Tomar Foto", modifier = Modifier.size(48.dp))
                             }
-                        }) {
-                            Icon(Icons.Default.AddAPhoto, contentDescription = "Tomar Foto", modifier = Modifier.size(48.dp))
+                        } else {
+                            LaunchedEffect(Unit) {
+                                productoViewModel.updateImagenUri(PLACEHOLDER_IMAGE_URL)
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(Icons.Default.CloudOff, contentDescription = "Sin Internet", modifier = Modifier.size(48.dp))
+                                Text("Sin conexión: cámara deshabilitada", style = MaterialTheme.typography.bodySmall)
+                            }
                         }
                     }
                 }
@@ -182,8 +202,8 @@ fun UpdateProductScreen(
                     )
                 )
 
-                // Botón para cambiar foto si ya existe imagen
-                if (imagenUri.isNotEmpty()) {
+                // Botón para cambiar foto si ya existe imagen y hay internet
+                if (imagenUri.isNotEmpty() && isOnline) {
                     TextButton(
                         onClick = {
                             val permissionCheck = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)

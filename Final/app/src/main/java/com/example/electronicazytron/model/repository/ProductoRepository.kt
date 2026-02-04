@@ -6,6 +6,8 @@ import com.example.electronicazytron.model.entities.ProductoDao
 class ProductoRepository(private val productoDao: ProductoDao) {
 
     suspend fun agregar(producto: Producto) {
+        // Nuevo producto: marcar como no sincronizado para que el servicio lo suba
+        producto.isSynced = false
         productoDao.insertar(producto)
     }
 
@@ -18,11 +20,14 @@ class ProductoRepository(private val productoDao: ProductoDao) {
     }
 
     suspend fun update(producto: Producto) {
+        // Cualquier cambio local debe marcarse como no sincronizado
+        producto.isSynced = false
         productoDao.actualizar(producto)
     }
 
     suspend fun softDelete(codigo: String) {
-        productoDao.marcarEliminado(codigo)
+        // Marcamos como eliminado y como no sincronizado para que el servicio lo elimine en la nube
+        productoDao.marcarEliminadoNoSincronizado(codigo)
     }
 
     suspend fun count(): Int = productoDao.count()
